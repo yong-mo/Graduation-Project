@@ -6,9 +6,9 @@ from torch.utils.data import TensorDataset
 
 class PACSHandler:
     def __init__(self):
-        #self.pacs_train = deeplake.load("hub://activeloop/pacs-train")   # 8977개
-        #self.pacs_val = deeplake.load("hub://activeloop/pacs-val")       # 1014개
-        self.pacs_test = deeplake.load("hub://activeloop/pacs-test")     # 9991개
+        self.pacs_train = deeplake.load("hub://activeloop/pacs-train")   # 8977
+        self.pacs_val = deeplake.load("hub://activeloop/pacs-val")       # 1014
+        #self.pacs_test = deeplake.load("hub://activeloop/pacs-test")     # 9991
         self.num_classes = 7
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -28,36 +28,36 @@ class PACSHandler:
         return transform(image)
 
     def split_domain(self, test_domain):
-        #datasets = [self.pacs_train, self.pacs_test, self.pacs_val]
+        datasets = [self.pacs_train, self.pacs_val]
         train_images = []
         train_labels = []
         test_images = []
         test_labels = []
 
-        # for dataset in datasets:
-        #     for i, (image, label, domain) in enumerate(zip(dataset.images, dataset.labels, dataset.domains.data()['text'])):
-        #         # Resizing and Normalization
-        #         image_tensor = self.resize_image(image.numpy(), target_size=(224, 224))
-        #         label_tensor = self.one_hot_labeling(label.numpy())
+        for dataset in datasets:
+            for i, (image, label, domain) in enumerate(zip(dataset.images, dataset.labels, dataset.domains.data()['text'])):
+                # Resizing and Normalization
+                image_tensor = self.resize_image(image.numpy(), target_size=(224, 224))
+                label_tensor = self.one_hot_labeling(label.numpy())
 
-        #         if test_domain != domain[0]:
-        #             train_images.append(image_tensor)
-        #             train_labels.append(label_tensor)
-        #         else:
-        #             test_images.append(image_tensor)
-        #             test_labels.append(label_tensor)
+                if test_domain != domain[0]:
+                    train_images.append(image_tensor)
+                    train_labels.append(label_tensor)
+                else:
+                    test_images.append(image_tensor)
+                    test_labels.append(label_tensor)
 
-        for i, (image, label, domain) in enumerate(zip(self.pacs_test.images, self.pacs_test.labels, self.pacs_test.domains.data()['text'])):
-            # Resizing and Normalization
-            image_tensor = self.resize_image(image.numpy(), target_size=(224, 224))
-            label_tensor = self.one_hot_labeling(label.numpy())
+        # for i, (image, label, domain) in enumerate(zip(self.pacs_test.images, self.pacs_test.labels, self.pacs_test.domains.data()['text'])):
+        #     # Resizing and Normalization
+        #     image_tensor = self.resize_image(image.numpy(), target_size=(224, 224))
+        #     label_tensor = self.one_hot_labeling(label.numpy())
 
-            if test_domain != domain[0]:
-                train_images.append(image_tensor)
-                train_labels.append(label_tensor)
-            else:
-                test_images.append(image_tensor)
-                test_labels.append(label_tensor) 
+        #     if test_domain != domain[0]:
+        #         train_images.append(image_tensor)
+        #         train_labels.append(label_tensor)
+        #     else:
+        #         test_images.append(image_tensor)
+        #         test_labels.append(label_tensor) 
 
         train_images = torch.stack(train_images)
         train_labels = torch.stack(train_labels)
