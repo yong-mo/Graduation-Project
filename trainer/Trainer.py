@@ -89,10 +89,9 @@ class Trainer:
 
 
     def update(self):
-        # self.swa_model.update_parameters(self.model)
-        # torch.optim.swa_utils.update_bn(self.trainloader, self.swa_model, device=self.device)
-        # self.update_params()
-        return 0
+        self.swa_model.update_parameters(self.model)
+        torch.optim.swa_utils.update_bn(self.trainloader, self.swa_model, device=self.device)
+        self.update_params()
 
 
     def print_acc(self):
