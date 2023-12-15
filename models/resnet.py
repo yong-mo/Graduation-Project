@@ -107,17 +107,16 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def select_sample(self, x, tau):
-        # 원래 순서의 인덱스 생성
-        original_indices = torch.arange(x.size(0)).tolist()
+        # original_indices = torch.arange(x.size(0)).tolist()
 
-        # 인덱스를 무작위로 섞음
+        # permute
         shuffled_indices = torch.randperm(x.size(0)).tolist()
 
         limit_index = int(x.size(0)*(1-tau))
         pass_indices = shuffled_indices[:limit_index]
         drop_indices = shuffled_indices[limit_index:]
 
-        # 텐서 배치를 섞인 순서대로 재배열
+        # re organize
         shuffled_x = x[shuffled_indices[:limit_index]]   # shuffled_B는 original B의 0, 2, 1, 3 순서대로
 
         return shuffled_x, pass_indices
@@ -133,16 +132,13 @@ class ResNet(nn.Module):
 
             for layer in layers:
                 for i, sublayer in enumerate(layer):
-                #print(f"{i}th sublayer")
                     if i == 0:  # 각 bottle block의 첫 번째 레이어는 모두 통과
                         out = sublayer(out)
-                        #print("모두 통과")
-                    else:
-                        # in-place 연산 방지 -> clone 생성
+                    else:                        
                         out_copy = out.clone()
                         selected, pass_indices = self.select_sample(out_copy, tau)
                         selected = sublayer(selected)
-                        out_copy[pass_indices] = selected    # scaling 필요?
+                        out_copy[pass_indices] = selected   
                         out = out_copy
         else:
             out = self.layer1(out)
@@ -151,7 +147,7 @@ class ResNet(nn.Module):
             out = self.layer4(out)
 
         out = self.avgpool(out)         # torch.Size([Batch_Size, 2048, 7, 7]) -> torch.Size([Batch_Size, 2048, 1, 1])
-        out = out.view(out.size(0),-1)  # flatten 과정   torch.Size([Batch_Size, 2048, 1, 1]) -> torch.Size([Batch_Size, 2048])
+        out = out.view(out.size(0),-1)  # torch.Size([Batch_Size, 2048, 1, 1]) -> torch.Size([Batch_Size, 2048])
         out = self.linear(out)          # torch.Size([Batch_Size, 2048]) -> torch.Size([Batch_Size, num_classes])
         return out
 
